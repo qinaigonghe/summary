@@ -1,0 +1,126 @@
+/*
+685在本问题中，有根树指满足以下条件的有向图。该树只有一个根节点，所有其他节点都是该根节点的后继。每一个节点只有一个父节点，除了根节点没有父节点。
+
+输入一个有向图，该图由一个有着N个节点 (节点值不重复1, 2, ..., N) 的树及一条附加的边构成。附加的边的两个顶点包含在1到N中间，这条附加的边不属于树中已存在的边。
+
+结果图是一个以边组成的二维数组。 每一个边 的元素是一对 [u, v]，用以表示有向图中连接顶点 u 和顶点 v 的边，其中 u 是 v 的一个父节点。
+
+返回一条能删除的边，使得剩下的图是有N个节点的有根树。若有多个答案，返回最后出现在给定二维数组的答案。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/redundant-connection-ii
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+*/
+
+class Solution {
+public:
+    int mapp[1001];
+    int root[1001];
+    int find(int i){
+        if(root[i]==i) return i;
+        root[i]=find(root[i]);
+        return root[i];
+    }
+    void unio(int i,int j){
+        int a=find(i);
+        int b=find(j);
+        root[a]=b;
+    
+    }
+    int judge(int i,vector<vector<int>>& edges){
+        int now=-1;
+        for(int i=0;i<1001;i++){
+            root[i]=i;
+        }
+        for(auto edge : edges){
+            now+=1;
+            if(now==i)continue;
+            
+            int a=edge[0];
+            int b=edge[1];
+            int c=find(a);
+            int d=find(b);
+            if(c==d) return 0;
+            unio(c,d);
+        }
+        return 1;
+    }
+    vector<int> findRedundantDirectedConnection(vector<vector<int>>& edges) {
+        for(int i=0;i<1001;i++){
+            mapp[i]=0;
+        }
+        int ans;
+        int flag=0;
+        int lens=0;
+        for(auto edge : edges){
+            int a=edge[0];
+            int b=edge[1];
+            if(mapp[b]==1){
+                ans=b;
+                flag=1;
+            }
+            else{
+                mapp[b]=1;
+            }
+            lens+=1;
+        }
+        if(flag==0){    //无双爹，去环即可
+            for(int i=lens-1;i>=0;i--){
+                if(judge(i,edges)){
+                    return edges[i];
+                }
+            }
+            
+        }
+        else{           //双爹，去一个爹无环即可
+            for(int i=lens-1;i>=0;i--){
+                if(edges[i][1]==ans){
+                    if(judge(i,edges))
+                    return edges[i];
+                }
+            }
+        }
+        return edges[lens-1];
+    }
+};
+
+
+
+
+
+
+class Solution {
+    //并查集+kruskal
+public:
+    int root[1005];
+    //查到根节点，若非最终根节点，递归返回给所有查询路径
+    int find(int a){
+        if(a==root[a]) return a;
+        root[a]=find(root[a]);
+        return root[a];
+    }
+    void unio(int a,int b){
+        int c=find(a);
+        int d=find(b);
+        root[c]=root[d];
+    }
+    vector<int> findRedundantConnection(vector<vector<int>>& edges) {
+        for(int i=0;i<1001;i++){
+            root[i]=i;
+        }
+        //根相同输出此边，不相同加入最小生成树
+        for(auto edge : edges){
+            int a=edge[0];
+            int b=edge[1];
+            
+            int c=find(a);
+            int d=find(b);
+
+            if(c==d) return edge;
+
+            unio(c,d);
+            
+        }
+        return edges[0];
+    }
+};
